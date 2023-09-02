@@ -1,0 +1,30 @@
+- name: Create SQS dead queue
+  community.aws.sqs_queue:
+    name: udixio-dead-queue
+    region: eu-west-3
+    default_visibility_timeout: 120
+    message_retention_period: 120
+    maximum_message_size: 1024
+    delivery_delay: 30
+    receive_message_wait_time: 20
+  regiter: dead_queue
+
+
+- name: Create SQS queues with redrive policy
+  community.aws.sqs_queue:
+    state: present
+    name: {{ item.name }}
+    region: {{ item.region | default("eu-west-3") }}
+    default_visibility_timeout: {{ item.timeout | default(120) }}
+    message_retention_period: {{ item.period | default(86400) }}
+    maximum_message_size: {{ item.max_size | default(8096) }}
+    delivery_delay: {{ item.delay | default(30) }}
+    receive_message_wait_time: {{ item.wait_time | default(20) }}
+    policy: "{{ json_dict }}"
+    redrive_policy:
+      maxReceiveCount: 5
+      deadLetterTargetArn: {{ dead_queue.queue_arn }}
+
+  loop:
+  - name: mail-queue
+

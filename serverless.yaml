@@ -1,0 +1,53 @@
+service: gateway
+
+plugins:
+  - 'serverless-plugin-typescript'
+  - serverless-plugin-optimize
+  - serverless-offline
+  - serverless-localstack
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  timeout: 900
+  httpApi:
+    cors: true
+
+functions:
+  main:
+    handler: src/main.handler
+    events:
+      - http:
+          method: GET
+          path: "{proxy+}"
+          cors: true
+      - http:
+          method: POST
+          path: "{proxy+}"
+          cors: true
+      - http:
+          path: "{proxy+}"
+          method: any
+          cors: true
+
+	
+custom:
+  serverlessPluginTypescript:
+    tsConfigFileLocation: './tsconfig.build.json'
+  serverless-offline:
+    host: 0.0.0.0
+  localstack:
+    debug: true
+    stages:
+      - pre-prod
+    host: http://localhost
+    edgePort: 4566
+    autostart: true
+    networks:
+      - host
+      - overlay
+      - localstack
+    lambda:
+      mountCode: True
+    docker:
+      sudo: False

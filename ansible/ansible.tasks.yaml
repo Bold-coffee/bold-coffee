@@ -1,0 +1,41 @@
+- name: Delete node_modules
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}
+  loop:
+    - ../node_modules
+    - ../package-lock.json
+
+- name: Install prod dependencies
+  community.general.npm:
+     path: ../
+     production: true
+
+- name: Create a zip archive auth microservice
+  community.general.archive:
+    path:
+     - ../node_modules
+     - ../src
+    dest: ../gateway.zip
+    format: zip
+
+- name: aws deployment
+  amazon.aws.lambda:
+    name: "{{ item.name }}"
+    state: present
+    s3_bucket: "{{ item.s3_bucket }}"
+    s3_key: "{{ item.s3_key }}"
+    runtime: 'go1.x'
+    role: 'arn:aws:iam::420943725200:role/lambda-creation'
+    handler: "{{ item.handler }}"
+#        vpc_subnet_ids:
+#          - subnet-0f3418cdc57a2a1c1
+#        vpc_security_group_ids:
+#          - sg-0ef4bf0bf5d9cb98a
+    environment_variables: "{{ item.env_vars | default({}) }}"
+  loop:
+    - name: udixio-gateway
+      s3_bucket: udixio-lambda
+      s3_key: gateway.zip
+      handler: src/main.handler
+

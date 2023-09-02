@@ -1,0 +1,4 @@
+- hosts: localhost
+  tasks:
+  - name: "Deploying gateway"
+    include_tasks: "{{ playbook_file }}"

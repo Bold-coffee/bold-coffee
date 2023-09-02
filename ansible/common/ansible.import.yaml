@@ -1,0 +1,2 @@
+- name: "Deploying microservice {{ idx }} out of {{ total }} : {{ playbook_file }}"
+  include_tasks: "{{ playbook_file }}"

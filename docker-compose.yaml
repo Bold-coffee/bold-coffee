@@ -1,0 +1,43 @@
+version: "2.20.0"
+
+include:
+  - "../auth/docker-compose.yaml"
+  - "../blog/docker-compose.yaml"
+  - "./common-networks.yaml"
+
+services:
+  mail:
+    build: ../mail
+    ports:
+      - 4002:3000
+    depends_on:
+      - queue
+    networks:
+      - microservice
+      - sqs
+
+  gateway:
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src:/opt/app/src
+    depends_on:
+
+      - auth
+      - blog
+      - mail
+    networks:
+      - microservice
+      - default
+
+
+  queue:
+    image: softwaremill/elasticmq:latest
+    ports:
+      - 9324:9324
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf
+    networks:
+      - sqs
+

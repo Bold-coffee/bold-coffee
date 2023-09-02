@@ -1,0 +1,18 @@
+- hosts: localhost
+  vars:
+    microservice_path:
+      - ../../auth/ansible.tasks.yaml
+      - ../../blog/ansible.tasks.yaml
+      - ../ansible.tasks.yaml
+      - ./ansible.sqs.yaml
+  gather_facts: no
+  tasks:
+    - name: "deploy all microservices"
+      include_tasks: ansible.import.yaml
+      vars:
+        playbook_file: "{{ item }}"
+        idx: "{{ idx + 1 }}"
+        total: "{{ microservice_path | length }}"
+      loop: "{{ microservice_path }}"
+      loop_control:
+        index_var: idx
